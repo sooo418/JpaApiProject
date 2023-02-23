@@ -10,11 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
-//    @Cacheable(cacheNames = "findBoardsCache", unless = "#result == null")
-//    @Query(value = "select distinct board" +
-//            " from Board board" +
-//            " left join fetch board.likeInfs")
-//    List<Board> findBoards();
 
     @Cacheable(cacheNames = "findBoardsCache", unless = "#result == null")
     @Query(value = "select board" +

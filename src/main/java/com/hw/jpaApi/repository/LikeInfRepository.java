@@ -18,7 +18,5 @@ public interface LikeInfRepository extends JpaRepository<LikeInf, Long> {
             "and likeInf.member = :member")
     List<LikeInf> findLikeInfs(@Param("boards") List<Board> boards, @Param("member") Member member);
 
-    List<LikeInf> findByBoardAndLikeYn(Board board, String likeYn);
-
     Optional<LikeInf> findByMember_IdAndBoard_BoardId(Long id, Long boardId);
 }
