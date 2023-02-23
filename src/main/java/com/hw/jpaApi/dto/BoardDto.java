@@ -13,10 +13,12 @@ public class BoardDto {
     private String likeYn;
     private AccountType accountType;
     private String delYn;
-
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;
     private LocalDateTime deleteTime;
+
+    public BoardDto() {
+    }
 
     public BoardDto(Long boardId, String content, Integer likeCount, String author, String likeYn, AccountType accountType, String delYn, LocalDateTime createTime, LocalDateTime modifyTime, LocalDateTime deleteTime) {
         this.boardId = boardId;
@@ -29,6 +31,10 @@ public class BoardDto {
         this.createTime = createTime;
         this.modifyTime = modifyTime;
         this.deleteTime = deleteTime;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public Long getBoardId() {

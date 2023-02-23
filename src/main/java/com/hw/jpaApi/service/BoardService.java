@@ -4,6 +4,7 @@ import com.hw.jpaApi.domain.Board;
 import com.hw.jpaApi.domain.LikeInf;
 import com.hw.jpaApi.domain.Member;
 import com.hw.jpaApi.dto.BoardDto;
+import com.hw.jpaApi.dto.Result;
 import com.hw.jpaApi.exception.BoardNotFoundException;
 import com.hw.jpaApi.exception.DeletedBoardException;
 import com.hw.jpaApi.exception.NoRequiredException;
@@ -27,8 +28,23 @@ import java.util.stream.Collectors;
 @Transactional
 public class BoardService {
 
+    @Value("${board.msg.create}")
+    private String CREATE_MSG;
+    @Value("${board.msg.retrieve}")
+    private String RETRIEVE_MSG;
+    @Value("${board.msg.update}")
+    private String UPDATE_MSG;
+    @Value("${board.msg.delete}")
+    private String DELETE_MSG;
+    @Value("${board.msg.like}")
+    private String LIKE_MSG;
+    @Value("${board.msg.like_cancel}")
+    private String LIKE_CANCEL_MSG;
+
     @Value("${board.page.size}")
     private int PAGE_SIZE;
+
+    private final static String LIKE_Y = "Y";
 
     private BoardRepository boardRepository;
     private LikeInfRepository likeInfRepository;
@@ -40,12 +56,14 @@ public class BoardService {
         this.memberService = memberService;
     }
 
-    public List<BoardDto> getBoards(String auth, int page) {
+    public Result getBoards(String auth, int page) {
         Member member = memberService.getMember(auth);
         PageRequest pageRequest = PageRequest.of((page - 1), PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createTime"));
         Page<Board> boards = boardRepository.findBoards(pageRequest);
         setBoardLikeYn(boards.getContent(), member);
-        return boards.stream().map(Board::convertDto).collect(Collectors.toList());
+
+        //msg, data, totalPage
+        return new Result(RETRIEVE_MSG, boards.stream().map(Board::convertDto).collect(Collectors.toList()), boards.getTotalPages());
     }
     public void setBoardLikeYn(List<Board> boards, Member member) {
         if (!member.hasId()) {
@@ -56,18 +74,12 @@ public class BoardService {
         boards.forEach(board -> {
             board.changeLikeYn(likeInfs);
         });
-
-//        boards.forEach(board -> {
-//            Optional<LikeInf> selfLikeInfOpt = board.getLikeInfs().stream().parallel()
-//                    .filter(likeInf -> StringUtils.equals(likeInf.getMember().getId(), self.getId()))
-//                    .findAny();
-//            LikeInf selfLikeInf = selfLikeInfOpt.orElse(new LikeInf());
-//            board.setLikeYn(selfLikeInf.getLikeYn());
-//        });
     }
 
     @CacheEvict(value = "findBoardsCache", allEntries = true)
-    public void createBoard(Board board, String auth) {
+    public Result createBoard(BoardDto boardDto, String auth) {
+        Board board = new Board(boardDto.getContent());
+
         if (board.hasRequired()) {
             throw new NoRequiredException();
         }
@@ -76,10 +88,14 @@ public class BoardService {
         board.setMember(member);
         board.setCreateTime(LocalDateTime.now());
         boardRepository.save(board);
+
+        return new Result(CREATE_MSG);
     }
 
     @CacheEvict(value = "findBoardsCache", allEntries = true)
-    public void modifyBoard(Long boardId, Board board, String auth) {
+    public Result modifyBoard(Long boardId, BoardDto boardDto, String auth) {
+        Board board = new Board(boardDto.getContent());
+
         if (board.hasRequired()) {
             throw new NoRequiredException();
         }
@@ -88,18 +104,22 @@ public class BoardService {
         Board findBoard = findEditableBoard(boardId, member);
 
         findBoard.modify(board);
+
+        return new Result(UPDATE_MSG);
     }
 
     @CacheEvict(value = "findBoardsCache", allEntries = true)
-    public void deleteBoard(Long boardId, String auth) {
+    public Result deleteBoard(Long boardId, String auth) {
         Member member = memberService.getMember(auth);
         Board findBoard = findEditableBoard(boardId, member);
 
         findBoard.delete();
+
+        return new Result(DELETE_MSG);
     }
 
     @CacheEvict(value = "findBoardsCache", allEntries = true)
-    public String likeToggle(Long boardId, String auth) {
+    public Result likeToggle(Long boardId, String auth) {
         Member member = memberService.getMember(auth);
 
         Optional<LikeInf> likeInfOpt = likeInfRepository.findByMember_IdAndBoard_BoardId(member.getId(), boardId);
@@ -114,9 +134,10 @@ public class BoardService {
 
         Board board = getBoard(boardId);
 
-        board.updateLikeCnt(likeInf.getLikeYn());
+        String likeYn = likeInf.getLikeYn();
+        board.updateLikeCnt(likeYn);
 
-        return likeInf.getLikeYn();
+        return new Result(LIKE_Y.equals(likeYn) ? LIKE_MSG : LIKE_CANCEL_MSG);
     }
 
     public Board getBoard(Long boardId) {

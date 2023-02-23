@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: org.h2.Driver
     username: sa
-    url: jdbc:h2:tcp://localhost/~/jpaApi
+    url: jdbc:h2:tcp://localhost/~/zaritalk
   jpa:
     show-sql: 'true'
     hibernate:
@@ -17,4 +17,12 @@ spring:
 
 board:
   page:
-    size: 3
+    size: 15
+  ## 메시지
+  msg:
+    retrieve: '정상적으로 글을 조회하였습니다.'
+    create: '정상적으로 글을 등록하였습니다.'
+    update: '정상적으로 글을 수정하였습니다.'
+    delete: '정상적으로 글을 삭제하였습니다.'
+    like: '해당 글에 좋아요를 하였습니다.'
+    like_cancel: '해당 글에 좋아요를 취소하였습니다.'

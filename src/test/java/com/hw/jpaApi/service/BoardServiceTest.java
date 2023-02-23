@@ -1,6 +1,5 @@
 package com.hw.jpaApi.service;
 
-import com.hw.jpaApi.domain.Board;
 import com.hw.jpaApi.dto.BoardDto;
 import com.hw.jpaApi.exception.NonPermissionException;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,7 @@ class BoardServiceTest {
         String auth = "Lessee 562";
 
         //when
-        List<BoardDto> boards = boardService.getBoards(auth, 1);
+        List<BoardDto> boards = (List<BoardDto>) boardService.getBoards(auth, 1).getData();
 
         //then
         boards.forEach(b -> System.out.println(b));
@@ -36,11 +35,12 @@ class BoardServiceTest {
         try {
             //given
             String auth = "Lessor 21";
-            Board board = new Board("안녕하세요.");
+            BoardDto boardDto = new BoardDto();
+            boardDto.setContent("허리가 휘었어요");
 
             //when
-            boardService.createBoard(board, auth);
-            List<BoardDto> boards = boardService.getBoards(auth, 15);
+            boardService.createBoard(boardDto, auth);
+            List<BoardDto> boards = (List<BoardDto>) boardService.getBoards(auth, 15).getData();
 
             //then
             boards.forEach(b -> System.out.println(b));
@@ -55,14 +55,15 @@ class BoardServiceTest {
         try {
             //given
             String auth = "Lessor 21";
-            Board board = new Board("그럼 이만");
+            BoardDto boardDto = new BoardDto();
+            boardDto.setContent("그럼 이만");
 
             //when
             /*boardService.modifyBoard(board)
             List<BoardDto> boards = boardService.getBoards(member);*/
 
             //then
-            assertThrows(NonPermissionException.class, () -> boardService.modifyBoard(4L, board, auth));
+            assertThrows(NonPermissionException.class, () -> boardService.modifyBoard(4L, boardDto, auth));
 //            boards.forEach(b -> System.out.println(b));
 
         } catch (Exception e) {
@@ -74,12 +75,12 @@ class BoardServiceTest {
     void 좋아요토글() {
         try {
             //given
-            long boardId = 5L;
+            long boardId = 43L;
             String auth = "Lessee 562";
 
             //when
             boardService.likeToggle(boardId, auth);
-            List<BoardDto> boards = boardService.getBoards(auth, 15);
+            List<BoardDto> boards = (List<BoardDto>) boardService.getBoards(auth, 15).getData();
 
             //then
             boards.forEach(b -> System.out.println(b));
